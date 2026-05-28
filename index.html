@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather App</title>
+
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <!-- Google Fonts: Material Symbols Outlined -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <!-- Axios CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.7.2/dist/axios.min.js"></script>
+
+    <!-- Project Stylesheet -->
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body class="antialiased">
+
+    <!-- Top Navigation Shell -->
+    <header class="nav-header">
+        <nav class="nav-inner">
+            <!-- Brand Logo -->
+            <div class="brand">
+                <span class="brand-name">Weather App</span>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="search-wrapper">
+                <div class="search-container">
+                    <div class="search-icon-left">
+                        <span class="material-symbols-outlined">search</span>
+                    </div>
+                    <input
+                        id="search-input"
+                        class="search-input"
+                        placeholder="Search by coordinates or city name..."
+                        type="text"
+                    />
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-content">
+
+        <!-- Current Weather Card -->
+        <section class="current-section" id="current-section">
+            <div class="current-bg-texture">
+                <img
+                    alt="Background Texture"
+                    class="current-bg-img"
+                    src="assets\current-bg.png"
+                />
+            </div>
+
+            <div class="current-body">
+                <div class="current-info">
+                    <div class="current-location">
+                        <span class="material-symbols-outlined current-location-icon">location_on</span>
+                        <span id="current-location">Tripoli, Libya</span>
+                    </div>
+                    <h1 class="current-temp" id="current-temp">-</h1>
+                    <div class="current-detail-row">
+                        <span class="current-condition" id="current-condition">-</span>
+                        <div class="current-divider"></div>
+                        <span class="current-hilo" id="current-hilo">H: - L: -</span>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <span class="material-symbols-outlined glass-icon" id="current-weather-icon" style="font-variation-settings: 'FILL' 1;">partly_cloudy_day</span>
+                    <div class="glass-label">
+                        <p class="glass-station">Station 04-B</p>
+                        <p class="glass-status" id="current-clarity">Optimal Clarity</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="current-meta">
+                <div class="current-live">
+                    <span class="live-dot"></span>
+                    -
+                </div>
+                <div id="last-updated">-</div>
+            </div>
+        </section>
+
+        <!-- 7-Day Forecast Section -->
+        <section class="forecast-section">
+            <h2 class="section-title">Extended Curation / 7-Day Outlook</h2>
+            <div class="forecast-grid" id="forecast-grid">
+                <!-- Day cards will be dynamically populated by script.js -->
+            </div>
+        </section>
+
+        <!-- Detailed Metrics Grid -->
+        <section class="metrics-grid" id="metrics-grid">
+
+            <!-- Wind Speed -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-label">Wind Speed</span>
+                    <span class="material-symbols-outlined metric-icon">air</span>
+                </div>
+                <div class="metric-value-row">
+                    <span class="metric-value" id="wind-speed">-</span>
+                    <span class="metric-unit">mph</span>
+                    <span class="metric-direction" id="wind-direction">-</span>
+                </div>
+                <div class="gauge-track">
+                    <div class="gauge-fill" id="wind-gauge" style="width: 33%"></div>
+                </div>
+            </div>
+
+            <!-- Humidity -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-label">Humidity</span>
+                    <span class="material-symbols-outlined metric-icon">humidity_low</span>
+                </div>
+                <div class="metric-value-row">
+                    <span class="metric-value" id="humidity">-</span>
+                    <span class="metric-unit-lg">%</span>
+                </div>
+                <p class="metric-note" id="humidity-note">The dew point is - right now.</p>
+            </div>
+
+            <!-- UV Index -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-label">UV Index</span>
+                    <span class="material-symbols-outlined metric-icon">wb_sunny</span>
+                </div>
+                <div class="metric-value-row">
+                    <span class="metric-value" id="uv-index">-</span>
+                    <span class="metric-unit-lg" id="uv-label">-</span>
+                </div>
+                <div class="gauge-track gauge-track-dot">
+                    <div class="gauge-dot" id="uv-dot" style="left: 40%"></div>
+                </div>
+            </div>
+
+            <!-- Visibility -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-label">Visibility</span>
+                    <span class="material-symbols-outlined metric-icon">visibility</span>
+                </div>
+                <div class="metric-value-row">
+                    <span class="metric-value" id="visibility">-</span>
+                    <span class="metric-unit-lg">mi</span>
+                </div>
+                <p class="metric-note" id="visibility-note">-</p>
+            </div>
+
+            <!-- Pressure -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-label">Pressure</span>
+                    <span class="material-symbols-outlined metric-icon">speed</span>
+                </div>
+                <div class="metric-value-row">
+                    <span class="metric-value" id="pressure">-</span>
+                    <span class="metric-unit-lg">in</span>
+                </div>
+                <div class="pressure-trend" id="pressure-trend">
+                    <span class="material-symbols-outlined pressure-trend-icon">trending_down</span>
+                    -
+                </div>
+            </div>
+
+            <!-- Feels Like -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-label">Feels Like</span>
+                    <span class="material-symbols-outlined metric-icon">thermostat</span>
+                </div>
+                <div class="metric-value-row">
+                    <span class="metric-value" id="feels-like">-</span>
+                </div>
+                <p class="metric-note" id="feels-like-note">-</p>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer Shell -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <span class="footer-brand-name">Weather App</span>
+                <p class="footer-copyright">&copy; 2024 Weather App.</p>
+            </div>
+            <div class="footer-links">
+                <a href="#">Weather App</a>
+                <a href="#">Stations</a>
+                <a href="#">API</a>
+                <a href="#">Legal</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Project Script -->
+    <script src="script.js"></script>
+</body>
+</html>
