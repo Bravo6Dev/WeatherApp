@@ -58,10 +58,6 @@
     --on-error: #ffffff;
     --on-error-container: #93000a;
 
-    /* Alert Banner */
-    --alert-bg: #fff4e5;
-    --alert-text: #663c00;
-
     /* Spacing Scale */
     --space-1: 0.25rem;
     /* 4px  */
@@ -155,7 +151,6 @@ img {
     z-index: 50;
     background-color: rgba(251, 249, 248, 0.8);
     backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
     box-shadow: var(--shadow-nav);
 }
 
@@ -263,35 +258,19 @@ current section styles
     justify-content: space-between;
 }
 
-.current-bg-texture {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 66.666%;
-    height: 100%;
-    opacity: 0.2;
-    pointer-events: none;
-}
-
-.current-bg-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    mix-blend-mode: overlay;
-}
-
 .current-body {
     position: relative;
     z-index: 10;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: space-between;
-    align-items: flex-start;
-    gap: var(--space-8);
+    align-items: center;
+    flex: 1;
 }
 
 .current-info {
     display: flex;
+    flex: 1;
     flex-direction: column;
     gap: var(--space-4);
 }
@@ -312,7 +291,7 @@ current section styles
 }
 
 .current-temp {
-    font-size: 8rem;
+    font-size: 10rem;
     font-weight: 900;
     line-height: 1;
     letter-spacing: -0.05em;
@@ -344,7 +323,7 @@ current section styles
 
 /* Glassmorphism Card */
 .glass-card {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     padding: 2.5rem;
@@ -352,14 +331,13 @@ current section styles
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     gap: var(--space-4);
 }
 
 .glass-icon {
-    font-size: 6rem;
+    font-size: 12rem;
     color: var(--secondary-container);
     filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15));
 }
@@ -405,18 +383,6 @@ current section styles
     border-radius: var(--radius-full);
     background-color: var(--secondary-container);
     animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.4;
-    }
 }
 
 .forecast-section {

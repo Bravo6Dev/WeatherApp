@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Weather App</title>
 
     <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet" />
 
     <!-- Google Fonts: Material Symbols Outlined -->
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
 
     <!-- Axios CDN -->
     <script src="https://cdn.jsdelivr.net/npm/axios@1.7.2/dist/axios.min.js"></script>
@@ -17,6 +20,7 @@
     <!-- Project Stylesheet -->
     <link rel="stylesheet" href="style.css" />
 </head>
+
 <body class="antialiased">
 
     <!-- Top Navigation Shell -->
@@ -33,12 +37,8 @@
                     <div class="search-icon-left">
                         <span class="material-symbols-outlined">search</span>
                     </div>
-                    <input
-                        id="search-input"
-                        class="search-input"
-                        placeholder="Search by coordinates or city name..."
-                        type="text"
-                    />
+                    <input id="search-input" class="search-input" placeholder="Search by coordinates or city name..."
+                        type="text" />
                 </div>
             </div>
         </nav>
@@ -48,14 +48,6 @@
 
         <!-- Current Weather Card -->
         <section class="current-section" id="current-section">
-            <div class="current-bg-texture">
-                <img
-                    alt="Background Texture"
-                    class="current-bg-img"
-                    src="assets\current-bg.png"
-                />
-            </div>
-
             <div class="current-body">
                 <div class="current-info">
                     <div class="current-location">
@@ -71,7 +63,8 @@
                 </div>
 
                 <div class="glass-card">
-                    <span class="material-symbols-outlined glass-icon" id="current-weather-icon" style="font-variation-settings: 'FILL' 1;">partly_cloudy_day</span>
+                    <span class="material-symbols-outlined glass-icon" id="current-weather-icon"
+                        style="font-variation-settings: 'FILL' 1;">-</span>
                     <div class="glass-label">
                         <p class="glass-station">Station 04-B</p>
                         <p class="glass-status" id="current-clarity">Optimal Clarity</p>
@@ -82,7 +75,7 @@
             <div class="current-meta">
                 <div class="current-live">
                     <span class="live-dot"></span>
-                    -
+                    Live Weather
                 </div>
                 <div id="last-updated">-</div>
             </div>
@@ -206,4 +199,5 @@
     <!-- Project Script -->
     <script src="script.js"></script>
 </body>
+
 </html>
