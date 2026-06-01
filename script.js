@@ -17,6 +17,8 @@
         REFRESH_INTERVAL: 5 * 60 * 1000,
     };
 
+    const THEME_STORAGE_KEY = 'weather-app-theme';
+
 
     /**
      * The Open-Meteo API returns WMO weather codes.
@@ -157,6 +159,68 @@
     function setHTML(selector, html) {
         const el = $(selector);
         if (el) el.innerHTML = html;
+    }
+
+    function getStoredTheme() {
+        const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+        return storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : null;
+    }
+
+    function getPreferredTheme() {
+        const storedTheme = getStoredTheme();
+        if (storedTheme) return storedTheme;
+
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    function updateThemeToggle(theme) {
+        const toggle = $('#theme-toggle');
+        const icon = $('#theme-toggle-icon');
+        const text = $('#theme-toggle-text');
+        const nextTheme = theme === 'dark' ? 'light' : 'dark';
+        const nextLabel = nextTheme === 'dark' ? 'dark mode' : 'light mode';
+
+        if (toggle) {
+            toggle.setAttribute('aria-pressed', String(theme === 'dark'));
+            toggle.setAttribute('aria-label', 'Switch to ' + nextLabel);
+            toggle.title = 'Switch to ' + nextLabel;
+        }
+
+        if (icon) {
+            icon.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
+        }
+
+        if (text) {
+            text.textContent = theme === 'dark' ? 'Light' : 'Dark';
+        }
+    }
+
+    function applyTheme(theme, shouldPersist) {
+        document.documentElement.setAttribute('data-theme', theme);
+        updateThemeToggle(theme);
+
+        if (shouldPersist) {
+            window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+        }
+    }
+
+    function initializeTheme() {
+        applyTheme(getPreferredTheme(), false);
+
+        const toggle = $('#theme-toggle');
+        if (toggle) {
+            toggle.addEventListener('click', function () {
+                const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                const nextTheme = activeTheme === 'dark' ? 'light' : 'dark';
+                applyTheme(nextTheme, true);
+            });
+        }
+
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', function (event) {
+            if (getStoredTheme()) return;
+            applyTheme(event.matches ? 'dark' : 'light', false);
+        });
     }
 
 
@@ -502,6 +566,8 @@
 
 
     document.addEventListener('DOMContentLoaded', function () {
+        initializeTheme();
+
         // Search input handler
         const searchInput = $('#search-input');
 
