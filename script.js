@@ -154,6 +154,98 @@
         });
     }
 
+    function getDayPartLabel(hour) {
+        if (hour < 12) return 'Morning';
+        if (hour < 18) return 'Afternoon';
+        return 'Night';
+    }
+
+    function getDayPartIcon(hour, weatherInfo) {
+        if (hour >= 18 || hour < 6) {
+            if (weatherInfo.icon === 'wb_sunny' || weatherInfo.icon === 'partly_cloudy_day') {
+                return 'clear_night';
+            }
+
+            if (weatherInfo.icon === 'cloud') {
+                return 'nights_stay';
+            }
+        }
+
+        return weatherInfo.icon;
+    }
+
+    function getDayPartNote(sample) {
+        const weatherInfo = getWeatherInfo(sample.weatherCode);
+        return weatherInfo.label + ' • ' + Math.round(sample.windSpeed) + ' km/h winds';
+    }
+
+    function buildDayPartWeather(data, dayIndex) {
+        const safeDayIndex = Math.max(0, Math.min(dayIndex, data.daily.time.length - 1));
+        const dateStr = data.daily.time[safeDayIndex];
+        const targetHours = [8, 14, 21];
+        const fallbackTemperature = (data.daily.temperature_2m_max[safeDayIndex] + data.daily.temperature_2m_min[safeDayIndex]) / 2;
+        const results = [];
+
+        for (let i = 0; i < targetHours.length; i++) {
+            const targetHour = targetHours[i];
+            let bestIndex = -1;
+            let bestDistance = Number.POSITIVE_INFINITY;
+
+            if (data.hourly && Array.isArray(data.hourly.time)) {
+                for (let j = 0; j < data.hourly.time.length; j++) {
+                    const timeValue = data.hourly.time[j];
+                    if (typeof timeValue !== 'string' || timeValue.indexOf(dateStr) !== 0) {
+                        continue;
+                    }
+
+                    const hour = Number(timeValue.slice(11, 13));
+                    const distance = Math.abs(hour - targetHour);
+                    if (distance < bestDistance) {
+                        bestDistance = distance;
+                        bestIndex = j;
+                    }
+                }
+            }
+
+            const weatherCode = getHourlyValue(data.hourly, 'weather_code', bestIndex, data.daily.weather_code[safeDayIndex]);
+            const weatherInfo = getWeatherInfo(weatherCode);
+            const sample = {
+                label: getDayPartLabel(targetHour),
+                hour: targetHour,
+                icon: getDayPartIcon(targetHour, weatherInfo),
+                temperature: getHourlyValue(data.hourly, 'temperature_2m', bestIndex, fallbackTemperature),
+                weatherCode: weatherCode,
+                windSpeed: getHourlyValue(data.hourly, 'wind_speed_10m', bestIndex, 0),
+            };
+
+            sample.note = getDayPartNote(sample);
+            results.push(sample);
+        }
+
+        return results;
+    }
+
+    function updateDayPartSection(data, dayIndex) {
+        const grid = $('#daypart-grid');
+        if (!grid) return;
+
+        const tempUnit = CONFIG.TEMP_UNIT === 'fahrenheit' ? '°' : '°';
+        const dayParts = buildDayPartWeather(data, dayIndex);
+        let html = '';
+
+        for (let i = 0; i < dayParts.length; i++) {
+            const dayPart = dayParts[i];
+            html += '<article class="daypart-card">';
+            html += '  <span class="daypart-label">' + dayPart.label + '</span>';
+            html += '  <span class="material-symbols-outlined daypart-icon">' + dayPart.icon + '</span>';
+            html += '  <p class="daypart-temp">' + Math.round(dayPart.temperature) + tempUnit + '</p>';
+            html += '  <p class="daypart-note">' + dayPart.note + '</p>';
+            html += '</article>';
+        }
+
+        grid.innerHTML = html;
+    }
+
     function findHourlyIndexForDay(timeValues, dateStr) {
         if (!Array.isArray(timeValues)) return -1;
 
@@ -226,6 +318,7 @@
     function renderSelectedDay(data, cityName, dayIndex) {
         const selectedDayWeather = getSelectedDayWeather(data, dayIndex);
         updateHeroSection(selectedDayWeather, cityName);
+        updateDayPartSection(data, selectedDayWeather.dayIndex);
         updateForecastSection(data.daily, selectedDayWeather.dayIndex);
         updateMetricsSection(selectedDayWeather);
         updateAlertBanner(selectedDayWeather);

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="theme.css" />
+</head>
+
+<body>
+    <div class="page-shell">
+        <header class="nav-header">
+            <nav class="nav-inner">
+                <div class="brand">
+                    <a class="brand-name" href="index.html">Weather App</a>
+                </div>
+
+                <div class="search-wrapper" aria-hidden="true"></div>
+
+                <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode"
+                    aria-pressed="false" title="Switch theme">
+                    <span class="material-symbols-outlined theme-toggle-icon" id="theme-toggle-icon">dark_mode</span>
+                    <span class="theme-toggle-text" id="theme-toggle-text">Dark</span>
+                </button>
+            </nav>
+        </header>
+
+        <main class="contact-main">
+            <section class="contact-section">
+                <div class="contact-hero">
+                    <p class="contact-kicker">Contact</p>
+                    <h4 class="contact-title">Send a note to the Weather App team.</h4>
+                </div>
+                <form class="contact-form" id="contact-form">
+                    <div class="contact-field-grid">
+                        <div class="contact-field">
+                            <label for="contact-name">Full Name</label>
+                            <input id="contact-name" name="name" type="text" placeholder="Enter your name" required />
+                        </div>
+                        <div class="contact-field">
+                            <label for="contact-email">Email</label>
+                            <input id="contact-email" name="email" type="email" placeholder="Enter your email"
+                                required />
+                        </div>
+                    </div>
+
+                    <div class="contact-field-grid">
+                        <div class="contact-field">
+                            <label for="contact-topic">Topic</label>
+                            <select id="contact-topic" name="topic">
+                                <option value="General">General</option>
+                                <option value="Feedback">Feedback</option>
+                                <option value="Design">Design</option>
+                                <option value="Data">Weather Data</option>
+                            </select>
+                        </div>
+                        <div class="contact-field">
+                            <label for="contact-city">City</label>
+                            <input id="contact-city" name="city" type="text" placeholder="City or region" />
+                        </div>
+                    </div>
+
+                    <div class="contact-field">
+                        <label for="contact-message">Message</label>
+                        <textarea id="contact-message" name="message"
+                            placeholder="Tell us what you would like to share..." required></textarea>
+                    </div>
+
+                    <button class="contact-submit" type="submit">Submit</button>
+                </form>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-inner">
+                <!-- brand -->
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <span class="material-symbols-outlined">partly_cloudy_day</span>
+                        <span class="footer-brand-name">Weather App</span>
+                    </div>
+
+                    <div class="contact-footer-info">
+                        <div class="footer-info-item">
+                            <span class="material-symbols-outlined">mail</span>
+                            <span>hello@weatherapp.local</span>
+                        </div>
+
+                        <div class="footer-info-item">
+                            <span class="material-symbols-outlined">location_on</span>
+                            <span>Tripoli, Libya</span>
+                        </div>
+
+                        <div class="footer-info-item">
+                            <span class="material-symbols-outlined">call</span>
+                            <span>+218 555 0100</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- links -->
+                <div class="footer-links">
+                    <a href="index.html">
+                        <span class="material-symbols-outlined">partly_cloudy_day</span>
+                        <span>Weather App</span>
+                    </a>
+
+                    <a href="contact.html">
+                        <span class="material-symbols-outlined">mail</span>
+                        <span>Contact</span>
+                    </a>
+
+                    <a href="https://open-meteo.com/en/docs" target="_blank" rel="noreferrer">
+                        <span class="material-symbols-outlined">api</span>
+                        <span>API Docs</span>
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="contact.js"></script>
+</body>
+
+</html>

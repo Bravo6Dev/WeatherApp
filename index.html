@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="theme.css" />
 </head>
 
-<body class="antialiased">
+<body class="antialiased" id="top">
 
     <!-- Top Navigation Shell -->
     <header class="nav-header">
@@ -85,6 +85,32 @@
                     <span id="current-status-label">Live Weather</span>
                 </div>
                 <div id="last-updated">-</div>
+            </div>
+        </section>
+
+        <section class="daypart-section" aria-labelledby="daypart-heading">
+            <div class="daypart-header">
+                <p class="daypart-kicker">Daily Rhythm</p>
+            </div>
+            <div class="daypart-grid" id="daypart-grid">
+                <article class="daypart-card">
+                    <span class="daypart-label">Morning</span>
+                    <span class="material-symbols-outlined daypart-icon">wb_sunny</span>
+                    <p class="daypart-temp">-</p>
+                    <p class="daypart-note">Loading conditions...</p>
+                </article>
+                <article class="daypart-card">
+                    <span class="daypart-label">Afternoon</span>
+                    <span class="material-symbols-outlined daypart-icon">partly_cloudy_day</span>
+                    <p class="daypart-temp">-</p>
+                    <p class="daypart-note">Loading conditions...</p>
+                </article>
+                <article class="daypart-card">
+                    <span class="daypart-label">Night</span>
+                    <span class="material-symbols-outlined daypart-icon">clear_night</span>
+                    <p class="daypart-temp">-</p>
+                    <p class="daypart-note">Loading conditions...</p>
+                </article>
             </div>
         </section>
 
@@ -190,15 +216,46 @@
     <!-- Footer Shell -->
     <footer class="footer">
         <div class="footer-inner">
+            <!-- brand -->
             <div class="footer-brand">
-                <span class="footer-brand-name">Weather App</span>
-                <p class="footer-copyright">&copy; 2024 Weather App.</p>
+                <div class="footer-logo">
+                    <span class="material-symbols-outlined">partly_cloudy_day</span>
+                    <span class="footer-brand-name">Weather App</span>
+                </div>
+
+                <div class="contact-footer-info">
+                    <div class="footer-info-item">
+                        <span class="material-symbols-outlined">mail</span>
+                        <span>bravo6@goingdark.com</span>
+                    </div>
+
+                    <div class="footer-info-item">
+                        <span class="material-symbols-outlined">location_on</span>
+                        <span>Tripoli, Libya</span>
+                    </div>
+
+                    <div class="footer-info-item">
+                        <span class="material-symbols-outlined">call</span>
+                        <span>0916232949</span>
+                    </div>
+                </div>
             </div>
+
             <div class="footer-links">
-                <a href="#">Weather App</a>
-                <a href="#">Stations</a>
-                <a href="#">API</a>
-                <a href="#">Legal</a>
+                <a href="index.html">
+                    <span class="material-symbols-outlined">partly_cloudy_day</span>
+                    <span>Weather App</span>
+                </a>
+
+                <a href="contact.html">
+                    <span class="material-symbols-outlined">mail</span>
+                    <span>Contact</span>
+                </a>
+
+                <a href="https://open-meteo.com/en/docs" target="_blank" rel="noreferrer">
+                    <span class="material-symbols-outlined">api</span>
+                    <span>API Docs</span>
+                </a>
             </div>
         </div>
     </footer>
