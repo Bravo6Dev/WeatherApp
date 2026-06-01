@@ -146,6 +146,91 @@
         return date.toLocaleDateString('en-US', { weekday: 'short' });
     }
 
+    function formatDayPreview(dateStr) {
+        return new Date(dateStr).toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+        });
+    }
+
+    function findHourlyIndexForDay(timeValues, dateStr) {
+        if (!Array.isArray(timeValues)) return -1;
+
+        const preferredIndex = timeValues.indexOf(dateStr + 'T12:00');
+        if (preferredIndex !== -1) return preferredIndex;
+
+        const matchingIndexes = [];
+        for (let i = 0; i < timeValues.length; i++) {
+            if (typeof timeValues[i] === 'string' && timeValues[i].indexOf(dateStr) === 0) {
+                matchingIndexes.push(i);
+            }
+        }
+
+        if (matchingIndexes.length === 0) return -1;
+        return matchingIndexes[Math.floor(matchingIndexes.length / 2)];
+    }
+
+    function getHourlyValue(hourly, key, index, fallback) {
+        if (!hourly || !Array.isArray(hourly[key]) || index < 0 || index >= hourly[key].length) {
+            return fallback;
+        }
+
+        const value = hourly[key][index];
+        return value == null ? fallback : value;
+    }
+
+    function getPressureChange(hourly, index) {
+        if (!hourly || !Array.isArray(hourly.surface_pressure) || index <= 0 || index >= hourly.surface_pressure.length) {
+            return 0;
+        }
+
+        const previousPressure = hourly.surface_pressure[index - 1];
+        const currentPressure = hourly.surface_pressure[index];
+        if (previousPressure == null || currentPressure == null) {
+            return 0;
+        }
+
+        return currentPressure - previousPressure;
+    }
+
+    function getSelectedDayWeather(data, dayIndex) {
+        const safeDayIndex = Math.max(0, Math.min(dayIndex, data.daily.time.length - 1));
+        const dateStr = data.daily.time[safeDayIndex];
+        const hourlyIndex = findHourlyIndexForDay(data.hourly && data.hourly.time, dateStr);
+        const isToday = safeDayIndex === 0;
+        const fallbackTemperature = (data.daily.temperature_2m_max[safeDayIndex] + data.daily.temperature_2m_min[safeDayIndex]) / 2;
+        const dailyWeatherCode = data.daily.weather_code[safeDayIndex];
+
+        return {
+            dayIndex: safeDayIndex,
+            date: dateStr,
+            dayLabel: getDayLabel(dateStr, safeDayIndex),
+            isToday: isToday,
+            display_weather_code: dailyWeatherCode,
+            weather_code: getHourlyValue(data.hourly, 'weather_code', hourlyIndex, isToday ? data.current.weather_code : data.daily.weather_code[safeDayIndex]),
+            temperature_2m: getHourlyValue(data.hourly, 'temperature_2m', hourlyIndex, isToday ? data.current.temperature_2m : fallbackTemperature),
+            temperature_2m_max: data.daily.temperature_2m_max[safeDayIndex],
+            temperature_2m_min: data.daily.temperature_2m_min[safeDayIndex],
+            relative_humidity_2m: getHourlyValue(data.hourly, 'relative_humidity_2m', hourlyIndex, isToday ? data.current.relative_humidity_2m : 0),
+            apparent_temperature: getHourlyValue(data.hourly, 'apparent_temperature', hourlyIndex, isToday ? data.current.apparent_temperature : fallbackTemperature),
+            wind_speed_10m: getHourlyValue(data.hourly, 'wind_speed_10m', hourlyIndex, isToday ? data.current.wind_speed_10m : 0),
+            wind_direction_10m: getHourlyValue(data.hourly, 'wind_direction_10m', hourlyIndex, isToday ? data.current.wind_direction_10m : 0),
+            surface_pressure: getHourlyValue(data.hourly, 'surface_pressure', hourlyIndex, isToday ? data.current.surface_pressure : 0),
+            uv_index: getHourlyValue(data.hourly, 'uv_index', hourlyIndex, isToday ? data.current.uv_index : data.daily.uv_index_max[safeDayIndex]),
+            visibility: getHourlyValue(data.hourly, 'visibility', hourlyIndex, isToday ? data.current.visibility : null),
+            pressureChange: getPressureChange(data.hourly, hourlyIndex),
+        };
+    }
+
+    function renderSelectedDay(data, cityName, dayIndex) {
+        const selectedDayWeather = getSelectedDayWeather(data, dayIndex);
+        updateHeroSection(selectedDayWeather, cityName);
+        updateForecastSection(data.daily, selectedDayWeather.dayIndex);
+        updateMetricsSection(selectedDayWeather);
+        updateAlertBanner(selectedDayWeather);
+    }
+
 
     function $(selector) {
         return document.querySelector(selector);
@@ -273,10 +358,22 @@
                         'uv_index',
                         'visibility',
                     ].join(','),
+                    hourly: [
+                        'temperature_2m',
+                        'relative_humidity_2m',
+                        'apparent_temperature',
+                        'weather_code',
+                        'wind_speed_10m',
+                        'wind_direction_10m',
+                        'surface_pressure',
+                        'uv_index',
+                        'visibility',
+                    ].join(','),
                     daily: [
                         'weather_code',
                         'temperature_2m_max',
                         'temperature_2m_min',
+                        'uv_index_max',
                     ].join(','),
                     temperature_unit: CONFIG.TEMP_UNIT,
                     wind_speed_unit: CONFIG.WIND_UNIT,
@@ -349,10 +446,10 @@
     /**
      * Updates the hero section with the current weather data.
      */
-    function updateHeroSection(current, cityName) {
-        const weatherInfo = getWeatherInfo(current.weather_code);
+    function updateHeroSection(selectedDayWeather, cityName) {
+        const weatherInfo = getWeatherInfo(selectedDayWeather.display_weather_code);
         const tempUnit = CONFIG.TEMP_UNIT === 'fahrenheit' ? '°' : '°';
-        const temp = Math.round(current.temperature_2m);
+        const temp = Math.round(selectedDayWeather.temperature_2m);
 
         // Location
         setText('#current-location', cityName || CONFIG.DEFAULT_CITY);
@@ -374,15 +471,31 @@
 
         setText('#current-clarity', weatherInfo.clarity);
 
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-        setText('#last-updated', 'Updated at ' + timeStr);
+        setText('#current-hilo',
+            'H: ' + Math.round(selectedDayWeather.temperature_2m_max) + tempUnit +
+            ' L: ' + Math.round(selectedDayWeather.temperature_2m_min) + tempUnit
+        );
+
+        const statusLabel = $('#current-status-label');
+        const liveDot = $('#current-live-dot');
+
+        if (selectedDayWeather.isToday) {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            setText('#last-updated', 'Updated at ' + timeStr);
+            if (statusLabel) statusLabel.textContent = 'Live Weather';
+            if (liveDot) liveDot.style.opacity = '1';
+        } else {
+            setText('#last-updated', 'Forecast for ' + formatDayPreview(selectedDayWeather.date));
+            if (statusLabel) statusLabel.textContent = 'Selected Forecast';
+            if (liveDot) liveDot.style.opacity = '0.4';
+        }
     }
 
     /**
      * Updates the 7-day forecast grid.
      */
-    function updateForecastSection(daily, current) {
+    function updateForecastSection(daily, activeDayIndex) {
         const grid = $('#forecast-grid');
         if (!grid) return;
 
@@ -392,52 +505,45 @@
         for (let i = 0; i < daily.time.length; i++) {
             const weatherInfo = getWeatherInfo(daily.weather_code[i]);
             const dayLabel = getDayLabel(daily.time[i], i);
-            const isActive = i === 0;
+            const isActive = i === activeDayIndex;
 
             const filledStyle = weatherInfo.filled
                 ? "style=\"font-variation-settings: 'FILL' 1;\""
                 : '';
 
-            html += '<div class="forecast-card' + (isActive ? ' active' : '') + '">';
+            html += '<button class="forecast-card' + (isActive ? ' active' : '') + '" type="button" data-day-index="' + i + '" aria-pressed="' + (isActive ? 'true' : 'false') + '">';
             html += '  <span class="forecast-day">' + dayLabel + '</span>';
             html += '  <span class="material-symbols-outlined forecast-icon" ' + filledStyle + '>' + weatherInfo.icon + '</span>';
             html += '  <div class="forecast-temps">';
             html += '    <p class="forecast-high">' + Math.round(daily.temperature_2m_max[i]) + tempUnit + '</p>';
             html += '    <p class="forecast-low">' + Math.round(daily.temperature_2m_min[i]) + tempUnit + '</p>';
             html += '  </div>';
-            html += '</div>';
+            html += '</button>';
         }
 
         grid.innerHTML = html;
-
-        if (daily.temperature_2m_max.length > 0 && daily.temperature_2m_min.length > 0) {
-            setText('#current-hilo',
-                'H: ' + Math.round(daily.temperature_2m_max[0]) + tempUnit +
-                ' L: ' + Math.round(daily.temperature_2m_min[0]) + tempUnit
-            );
-        }
     }
 
     /**
      * Updates all the metric cards with detailed weather data.
      */
-    function updateMetricsSection(current, daily) {
+    function updateMetricsSection(selectedDayWeather) {
         const tempUnit = CONFIG.TEMP_UNIT === 'fahrenheit' ? '°' : '°';
 
-        setText('#wind-speed', Math.round(current.wind_speed_10m));
-        setText('#wind-direction', getWindDirection(current.wind_direction_10m));
-        const windPercent = Math.min((current.wind_speed_10m / 60) * 100, 100);
+        setText('#wind-speed', Math.round(selectedDayWeather.wind_speed_10m));
+        setText('#wind-direction', getWindDirection(selectedDayWeather.wind_direction_10m));
+        const windPercent = Math.min((selectedDayWeather.wind_speed_10m / 60) * 100, 100);
         const windGauge = $('#wind-gauge');
         if (windGauge) windGauge.style.width = windPercent + '%';
 
         // Humidity
-        setText('#humidity', current.relative_humidity_2m);
-        const actualTemp = current.temperature_2m;
-        const dewPoint = calculateDewPoint(actualTemp, current.relative_humidity_2m);
+        setText('#humidity', Math.round(selectedDayWeather.relative_humidity_2m));
+        const actualTemp = selectedDayWeather.temperature_2m;
+        const dewPoint = calculateDewPoint(actualTemp, selectedDayWeather.relative_humidity_2m || 1);
         setText('#humidity-note', 'The dew point is ' + dewPoint + tempUnit + ' right now.');
 
         // UV Index
-        const uvIndex = Math.round(current.uv_index);
+        const uvIndex = Math.round(selectedDayWeather.uv_index);
         setText('#uv-index', uvIndex);
         setText('#uv-label', getUVLabel(uvIndex));
         const uvDot = $('#uv-dot');
@@ -445,8 +551,8 @@
 
         // Visibility (Open-Meteo returns visibility in meters, convert to miles)
         let visibilityMiles = 10; // default
-        if (current.visibility != null) {
-            visibilityMiles = Math.round((current.visibility / 1609.34) * 10) / 10;
+        if (selectedDayWeather.visibility != null) {
+            visibilityMiles = Math.round((selectedDayWeather.visibility / 1609.34) * 10) / 10;
             // Cap at 10 miles for display
             if (visibilityMiles > 10) visibilityMiles = 10;
         }
@@ -454,12 +560,12 @@
         setText('#visibility-note', getVisibilityNote(visibilityMiles));
 
         // Pressure (Open-Meteo returns hPa, convert to inHg)
-        const pressureInHg = (current.surface_pressure * 0.02953).toFixed(2);
+        const pressureInHg = (selectedDayWeather.surface_pressure * 0.02953).toFixed(2);
         setText('#pressure', pressureInHg);
 
         const pressureTrendEl = $('#pressure-trend');
         if (pressureTrendEl) {
-            const trend = getPressureTrend(0); // Default to steady
+            const trend = getPressureTrend(selectedDayWeather.pressureChange);
             pressureTrendEl.innerHTML =
                 '<span class="material-symbols-outlined pressure-trend-icon">' + trend.icon + '</span>' +
                 trend.label;
@@ -472,7 +578,7 @@
             }
         }
 
-        const feelsLike = Math.round(current.apparent_temperature);
+        const feelsLike = Math.round(selectedDayWeather.apparent_temperature);
         setText('#feels-like', feelsLike + tempUnit);
         setText('#feels-like-note', getFeelsLikeNote(feelsLike, actualTemp));
     }
@@ -482,26 +588,30 @@
      * Evaluates current weather conditions and generates an alert
      * banner message if any advisory conditions are detected.
      */
-    function updateAlertBanner(current) {
+    function updateAlertBanner(selectedDayWeather) {
         const alerts = [];
 
         // High UV alert
-        if (current.uv_index >= 8) {
-            alerts.push('Extreme UV index of ' + Math.round(current.uv_index) + ' — limit outdoor exposure.');
+        if (selectedDayWeather.uv_index >= 8) {
+            alerts.push('Extreme UV index of ' + Math.round(selectedDayWeather.uv_index) + ' — limit outdoor exposure.');
         }
 
         // High wind alert
-        if (current.wind_speed_10m >= 40) {
-            alerts.push('High wind warning: ' + Math.round(current.wind_speed_10m) + ' mph gusts expected.');
+        if (selectedDayWeather.wind_speed_10m >= 40) {
+            alerts.push('High wind warning: ' + Math.round(selectedDayWeather.wind_speed_10m) + ' km/h winds expected.');
         }
 
         // Low visibility alert
-        if (current.visibility && current.visibility < 3000) {
+        if (selectedDayWeather.visibility && selectedDayWeather.visibility < 3000) {
             alerts.push('Low visibility advisory — fog or mist detected in your area.');
         }
 
         const banner = $('#alert-banner');
         const alertText = $('#alert-text');
+
+        if (!banner || !alertText) {
+            return;
+        }
 
         if (alerts.length > 0) {
             alertText.textContent = alerts.join(' | ');
@@ -517,6 +627,8 @@
     let currentLon = CONFIG.DEFAULT_LON;
     let currentCityName = CONFIG.DEFAULT_CITY;
     let refreshTimer = null;
+    let selectedDayIndex = 0;
+    let latestWeatherData = null;
 
     /**
      * Loads weather data for the given coordinates and updates all UI sections.
@@ -525,11 +637,10 @@
         try {
             const data = await fetchWeatherData(lat, lon);
 
-            if (data.current && data.daily) {
-                updateHeroSection(data.current, cityName);
-                updateForecastSection(data.daily, data.current);
-                updateMetricsSection(data.current, data.daily);
-                updateAlertBanner(data.current);
+            if (data.current && data.daily && data.hourly) {
+                latestWeatherData = data;
+                selectedDayIndex = 0;
+                renderSelectedDay(data, cityName, selectedDayIndex);
             } else {
                 showToast('Received incomplete weather data.');
             }
@@ -564,9 +675,30 @@
         }, CONFIG.REFRESH_INTERVAL);
     }
 
+    function initializeForecastSelection() {
+        const grid = $('#forecast-grid');
+        if (!grid) return;
+
+        grid.addEventListener('click', function (event) {
+            const button = event.target.closest('.forecast-card');
+            if (!button || !latestWeatherData) {
+                return;
+            }
+
+            const nextDayIndex = Number(button.getAttribute('data-day-index'));
+            if (Number.isNaN(nextDayIndex) || nextDayIndex === selectedDayIndex) {
+                return;
+            }
+
+            selectedDayIndex = nextDayIndex;
+            renderSelectedDay(latestWeatherData, currentCityName, selectedDayIndex);
+        });
+    }
+
 
     document.addEventListener('DOMContentLoaded', function () {
         initializeTheme();
+        initializeForecastSelection();
 
         // Search input handler
         const searchInput = $('#search-input');

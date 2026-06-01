@@ -390,6 +390,11 @@ current section styles
     cursor: pointer;
 }
 
+.forecast-card:focus-visible {
+    outline: none;
+    box-shadow: var(--card-shadow), 0 0 0 3px var(--secondary);
+}
+
 .forecast-card:hover {
     background-color: var(--surface-container-high);
 }
